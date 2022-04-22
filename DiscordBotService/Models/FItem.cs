@@ -6,7 +6,7 @@ namespace DiscordBotService.Models;
 public class FItem : MongoModel
 {
     public float BaseDamage;
-    public Dictionary<string, int> Modifiers;
+    public List<string> Modifiers;
 
 
     public static FItem CreateRandom()
