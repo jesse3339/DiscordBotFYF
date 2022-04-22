@@ -2,9 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace DiscordBotService.Models;
-
-public class StatComponent : MongoModel
+public class StatComponent
 {
     public string? OwnerRef;
     public int FightsWon;
@@ -16,9 +14,8 @@ public class StatComponent : MongoModel
     public float Armor;
     public float MagicResist;
 
-    public StatComponent(string ownerRef)
+    public StatComponent()
     {
-        OwnerRef = ownerRef;
         Level = 1;
         CurrentHealth = 150.0f;
         MaxHealth = 150.0f;
