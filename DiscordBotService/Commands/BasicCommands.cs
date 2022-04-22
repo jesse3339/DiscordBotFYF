@@ -19,18 +19,16 @@ public class BasicCommands : BaseCommandModule
     public async Task Stats(CommandContext ctx)
     {
         await ctx.TriggerTypingAsync();
-        var sCollection = new MongoCollectionService<StatComponent>(MongoCollection.Stats).GetCollection();
-        var cCollection = new MongoCollectionService<Client>(MongoCollection.Clients).GetCollection();
+        var cCollection = new MongoCollectionService<FClient>(MongoCollection.Clients).GetCollection();
         var userObj = await cCollection.Find(u => u.DiscordId == ctx.Member.Id).SingleAsync();
-        var statComponent = await sCollection.Find(m => m.Id == userObj.StatComponentRef).SingleAsync();
-        
+
         var builder = new DiscordEmbedBuilder();
         builder.Color = new DSharpPlus.Entities.Optional<DiscordColor>(DiscordColor.Red);
         builder.Title = $"{ctx.User.Username}'s Stats";
-        builder.AddField("Level:", $"{statComponent.Level}", true);
-        builder.AddField("Fights Won:", $"{statComponent.FightsWon}/{statComponent.FightsLost + statComponent.FightsWon} || " +
-                                        $"{Math.Round((float)statComponent.FightsWon/(statComponent.FightsLost + statComponent.FightsWon), 2)}%", true);
-        builder.AddField("Health:", $"{statComponent.CurrentHealth}/{statComponent.MaxHealth}");
+        builder.AddField("Level:", $"{userObj.Stats.Level}", true);
+        builder.AddField("Fights Won:", $"{userObj.Stats.FightsWon}/{userObj.Stats.FightsLost + userObj.Stats.FightsWon} || " +
+                                        $"{Math.Round((float)userObj.Stats.FightsWon/(userObj.Stats.FightsLost + userObj.Stats.FightsWon), 2)}%", true);
+        builder.AddField("Health:", $"{userObj.Stats.CurrentHealth}/{userObj.Stats.MaxHealth}");
         
         await new DiscordMessageBuilder().WithContent($"Here are {ctx.User.Mention}'s stats!").WithEmbed(builder.Build()).WithAllowedMentions(new IMention[] {new UserMention(ctx.User)}).SendAsync(ctx.Channel);
     }
@@ -42,27 +40,14 @@ public class BasicCommands : BaseCommandModule
     {
         try
         {
-            var collection = new MongoCollectionService<Client>(MongoCollection.Clients).GetCollection();
+            var collection = new MongoCollectionService<FClient>(MongoCollection.Clients).GetCollection();
 
             if (ctx.Member != null)
             {
-                var model = new Client()
-                {
-                    DiscordId = ctx.Member.Id,
-                    Name = ctx.Member.DisplayName
-                };
+                var model = new FClient(ctx.Member.Id, ctx.Member.DisplayName);
                 if (!await collection.Find(m => m.DiscordId == ctx.Member.Id).AnyAsync())
                 {
                     await collection.InsertOneAsync(model); //insert user
-                    
-                    var statCollection = new MongoCollectionService<StatComponent>(MongoCollection.Stats).GetCollection();
-                    var baseStatComponent = new StatComponent(ownerRef: model.Id);
-                    await statCollection.InsertOneAsync(baseStatComponent); //insert user stats
-                    
-                    var filter = Builders<Client>.Filter.Eq("Id", model.Id);
-                    var update = Builders<Client>.Update.Set("StatComponentRef", baseStatComponent.Id);
-                    await collection.UpdateOneAsync(filter, update); //establish bi-directional reference
-                    
                     await ctx.RespondAsync("User Created! Check out your base stats with the 'stats' command!");
                 }
                 else

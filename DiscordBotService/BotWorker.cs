@@ -13,9 +13,9 @@ namespace DiscordBotService;
 
 public class BotWorker : BackgroundService
 {
-    private ILoggerFactory _loggerFactory;
-    private DiscordClient _discordClient;
-    private CommandsNextExtension _commandsNextConfiguration;
+    private ILoggerFactory? _loggerFactory;
+    private DiscordClient? _discordClient;
+    private CommandsNextExtension? _commandsNextConfiguration;
     
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 
@@ -63,7 +63,7 @@ public class BotWorker : BackgroundService
             LoggerFactory = _loggerFactory
         });
 
-        Log.Information($"Bot Online {DateTime.Now}");
+        Log.Information($"Bot Online");
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
